@@ -3,24 +3,15 @@
 import { useCallback, useEffect, useState } from "react";
 import { useSharedStorage } from "./use-shared-storage";
 
-type Page = "metric-counter" | "task-manager" | "server-metrics";
-type Filter = "all" | "active" | "completed";
-type Task = { id: number; name: string; completed: boolean };
-type Metrics = {
-  hostname: string; os: string; kernel: string; cpu_usage: number; cpu_cores: number;
-  total_memory: number; used_memory: number; available_memory: number; uptime: number;
-  status: string; active_users: number;
-};
-
-const tabs: { id: Page; label: string }[] = [
+const tabs = [
   { id: "metric-counter", label: "Metric Counter" },
   { id: "task-manager", label: "User Task Manager" },
   { id: "server-metrics", label: "Server Metrics" },
 ];
 
 export function Dashboard() {
-  const [page, setPage] = useSharedStorage<Page>("pulseboard.current-page", "metric-counter");
-  const [metrics, setMetrics] = useState<Metrics | null>(null);
+  const [page, setPage] = useSharedStorage("pulseboard.current-page", "metric-counter");
+  const [metrics, setMetrics] = useState(null);
   const [refreshIn, setRefreshIn] = useState(5);
 
   const loadMetrics = useCallback(async () => {
@@ -58,8 +49,8 @@ export function Dashboard() {
   );
 }
 
-function MetricCounter({ initial }: { initial: number }) {
-  const [count, setCount] = useSharedStorage<number>("pulseboard.metric-counter", initial);
+function MetricCounter({ initial }) {
+  const [count, setCount] = useSharedStorage("pulseboard.metric-counter", initial);
   return (
     <>
       <h1>Metric Counter</h1>
@@ -81,9 +72,9 @@ function TaskManager() {
   const [user, setUser] = useSharedStorage("pulseboard.current-user", "Default User");
   const [draftUser, setDraftUser] = useState(user);
   const [input, setInput] = useState("");
-  const [filter, setFilter] = useState<Filter>("all");
+  const [filter, setFilter] = useState("all");
   const taskKey = `pulseboard.tasks.${user}`;
-  const [tasks, setTasks] = useSharedStorage<Task[]>(taskKey, []);
+  const [tasks, setTasks] = useSharedStorage(taskKey, []);
 
   useEffect(() => setDraftUser(user), [user]);
   const visible = tasks.filter((task) => filter === "all" || (filter === "completed" ? task.completed : !task.completed));
@@ -113,7 +104,7 @@ function TaskManager() {
           <button className="primary" onClick={addTask}>Add</button>
         </div>
         <div className="filters">
-          {(["all", "active", "completed"] as Filter[]).map((name) => (
+          {["all", "active", "completed"].map((name) => (
             <button className={filter === name ? "selected" : ""} key={name} onClick={() => setFilter(name)}>{name[0].toUpperCase() + name.slice(1)}</button>
           ))}
         </div>
@@ -130,9 +121,9 @@ function TaskManager() {
   );
 }
 
-function ServerMetrics({ metrics, refreshIn }: { metrics: Metrics | null; refreshIn: number }) {
-  const formatGb = (mb: number) => `${(mb / 1024).toFixed(2)} GB`;
-  const formatUptime = (seconds: number) => `${Math.floor(seconds / 86400)}d ${Math.floor((seconds % 86400) / 3600)}h ${Math.floor((seconds % 3600) / 60)}m`;
+function ServerMetrics({ metrics, refreshIn }) {
+  const formatGb = (mb) => `${(mb / 1024).toFixed(2)} GB`;
+  const formatUptime = (seconds) => `${Math.floor(seconds / 86400)}d ${Math.floor((seconds % 86400) / 3600)}h ${Math.floor((seconds % 3600) / 60)}m`;
   const telemetry = metrics ? [
     ["🟢 Status", metrics.status], ["💻 Host", metrics.hostname], ["🪟 Operating System", metrics.os],
     ["⚙ Kernel", metrics.kernel], ["🧠 CPU Cores", String(metrics.cpu_cores)], ["💾 Used RAM", formatGb(metrics.used_memory)],
@@ -156,5 +147,5 @@ function ServerMetrics({ metrics, refreshIn }: { metrics: Metrics | null; refres
   );
 }
 
-function Stat({ title, value }: { title: string; value: string }) { return <div className="stat"><h4>{title}</h4><h2>{value}</h2></div>; }
-function Skeleton({ compact = false }: { compact?: boolean }) { return <div className={compact ? "skeleton compact" : "skeleton"}><i /><i /></div>; }
+function Stat({ title, value }) { return <div className="stat"><h4>{title}</h4><h2>{value}</h2></div>; }
+function Skeleton({ compact = false }) { return <div className={compact ? "skeleton compact" : "skeleton"}><i /><i /></div>; }

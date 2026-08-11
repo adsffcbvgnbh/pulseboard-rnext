@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { useSharedStorage } from "./use-shared-storage";
+import { useSharedStorage } from "../hooks/use-shared-storage";
 
 const tabs = [
   { id: "metric-counter", label: "Metric Counter" },
